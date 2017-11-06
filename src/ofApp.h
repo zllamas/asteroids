@@ -16,6 +16,7 @@ struct Asteroid {
 
 struct ProgressBar {
 	ProgressBar();
+	ProgressBar(string health);
 	
 	void draw();
 	
@@ -26,6 +27,18 @@ struct ProgressBar {
 	ofColor color;
 };
 
+struct Enemy {
+	Enemy();
+	Enemy(ofPoint l);
+
+	void draw();
+	void attack();
+	vector<ofPoint> ammo;
+
+	ofPoint location;
+	float rotate;
+	bool isAttacking;
+};
 
 //convert cam to ofimage and then crop
 //toOF(cam,img)
@@ -71,13 +84,18 @@ public:
 
 
 	//-----------------------------------------------------
+	ofImage welcomeImage;
 
 	vector<Asteroid> asteroids;
 	int timer;
 	ofPoint headposition;
 
+	vector<Enemy> enemies;
+
+	bool welcomeScreen;
 	bool attack;
 	bool isJawOpen;
+	
 
 	float currentProgress;
 	int lastSecond;

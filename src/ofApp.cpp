@@ -5,25 +5,43 @@ using namespace cv;
 
 float trackerresults;
 //--------------------------------------------------------------
-void ofApp::setup() {	
+void ofApp::setup() {
+	welcomeImage.load("welcomeScreen.png");
+	// =========================================================
+	// set up FaceTracker and camera
 	ofSetVerticalSync(true);
 	cam.initGrabber(640, 480);
 
 	tracker.setup();
 	tracker.setRescale(.5);
+	// =========================================================
 
 	// ---------------------------------------------------------
-	//create 2 asteroids to start
-	for (int i = 0; i < 20; ++i) {
+	//create asteroids to start
+	/*for (int i = 0; i < 20; ++i) {
 		Asteroid temp;
 		asteroids.push_back(temp);
 		temp.asteroid_pic.load("asteroid01.png");
-	}
+	}*/
+	// ---------------------------------------------------------
 
+	// =========================================================
+	// init assign booleans and progress counter 
 	attack = false;
 	isJawOpen = false;
+	welcomeScreen = true;
 	currentProgress = 0;
+	// =========================================================
 
+	// set up enemies
+	Enemy t1(ofPoint(0, 0));
+	Enemy t2(ofPoint(ofGetWidth(), ofGetHeight()));
+	Enemy t3(ofPoint(0, ofGetHeight()));
+	Enemy t4(ofPoint(ofGetWidth(), 0));
+	enemies.push_back(t1);
+	enemies.push_back(t2);
+	enemies.push_back(t3);
+	enemies.push_back(t4);
 }
 
 //--------------------------------------------------------------
@@ -59,18 +77,7 @@ void ofApp::update() {
 	//	}
 	//}
 
-	//update asteroid position
-	for (int i = 0; i < asteroids.size(); ++i) {
-		asteroids[i].position.x += asteroids[i].speed;
-		asteroids[i].position.y += asteroids[i].speed;
-
-		if (asteroids[i].position.x > ofGetWidth()+ asteroids[i].radius &&
-			asteroids[i].position.y > ofGetHeight() + asteroids[i].radius) {
-			asteroids[i].position = asteroids[i].start;
-			asteroids[i].speed = (int)ofRandom(1, 5);
-		}
-	}
-
+	// =========================================================
 	//update camera
 	cam.update();
 	if (cam.isFrameNew()) {
@@ -78,9 +85,26 @@ void ofApp::update() {
 			classifier.classify(tracker);
 		}
 	}
+	// =========================================================
 
+	// =========================================================
+	//update asteroid position
+	//for (int i = 0; i < asteroids.size(); ++i) {
+	//	asteroids[i].position.x += asteroids[i].speed;
+	//	asteroids[i].position.y += asteroids[i].speed;
+
+	//	if (asteroids[i].position.x > ofGetWidth()+ asteroids[i].radius &&
+	//		asteroids[i].position.y > ofGetHeight() + asteroids[i].radius) {
+	//		asteroids[i].position = asteroids[i].start;
+	//		asteroids[i].speed = (int)ofRandom(1, 5);
+	//	}
+	//}
+	// =========================================================
+
+	// =========================================================
 	//update facetracking ie. jaw open --> progress bar
-	float openness = tracker.getGesture(ofxFaceTracker::JAW_OPENNESS);
+	float openness = tracker.getGesture(ofxFaceTracker::JAW_OPENNESS); 
+	headposition = ofPoint(tracker.getPosition()[0], tracker.getPosition()[1]);
 	//cout<< openness <<endl;
 	//<22 closed <26 open
 	if (openness >= 25 && isJawOpen == false) {
@@ -105,11 +129,29 @@ void ofApp::update() {
 			lastSecond = floor(ofGetElapsedTimeMillis());
 
 			//update bar
-			progress.width = 200 * (currentProgress/300);
+			progress.width = 200 * (currentProgress/500);
 			//cout << progress.width << endl;
 
 		}
 	}
+	// =========================================================
+
+	// =========================================================
+	
+	if (progress.width > 200*.75) { //3/4
+		enemies[2].attack();
+		enemies[3].attack();
+	}
+	else if (progress.width > 200 *.50) { //2/4
+		enemies[1].attack();
+	}
+	else if (progress.width > 200 * .25) { //1/4
+		enemies[0].attack();
+	}
+	
+	
+	
+	
 
 }
 
@@ -117,37 +159,57 @@ void ofApp::update() {
 void ofApp::draw() {
 	ofSetBackgroundColor(ofColor::black);
 	ofSetColor(255);
-
-	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	//draw cam
-	//cam.draw(0, 0);
-	//tracker.draw();
-	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-
-	// =========================================================
-	// draw asteroids
-	for (int i = 0; i < asteroids.size(); ++i) {
-		//asteroids[i].asteroid_pic.draw(asteroids[i].position.x, asteroids[i].position.y);
-		ofDrawCircle(asteroids[i].position, (float)asteroids[i].radius);
+	if(welcomeScreen){
+		welcomeImage.draw(14,20);
 	}
-	// =========================================================
+	else {
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+		//draw cam
+		//cam.draw(0, 0);
+		//tracker.draw();
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-	//draw ProgressBar
-	progress.draw();
-	// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+		// =========================================================
+		// draw asteroids
+		for (int i = 0; i < asteroids.size(); ++i) {
+			//asteroids[i].asteroid_pic.draw(asteroids[i].position.x, asteroids[i].position.y);
+			ofDrawCircle(asteroids[i].position, (float)asteroids[i].radius);
+		}
+		// =========================================================
 
-	// =========================================================
-	//draw face
-	ofSetColor(ofColor::greenYellow);
-	tracker.getImageMesh().draw();
-	// =========================================================
+		
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+		//draw face
+		ofSetColor(ofColor::greenYellow);
+		tracker.getImageMesh().draw();
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+		// =========================================================
+		if (attack) {
+			for (int i = 0; i < enemies.size(); ++i) {
+				enemies[i].draw();
+				for(int j=0; j<enemies[i].ammo.size(); ++j){
+					ofDrawCircle(enemies[i].ammo[j], 10);
+					enemies[i].ammo[j].x = enemies[i].ammo[j].x + 10;
+					enemies[i].ammo[j].y = enemies[i].ammo[j].y + 10;
+				}
+
+			}
+		}
+		// =========================================================
+		
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+		//draw ProgressBar
+		progress.draw();
+		// = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+	}
 	
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
+	welcomeScreen = !welcomeScreen;
 }
 
 //--------------------------------------------------------------
@@ -224,6 +286,14 @@ ProgressBar::ProgressBar() {
 	color = ofColor::red;
 }
 
+ProgressBar::ProgressBar(string health) {
+	start = ofPoint(20, 20);
+	goal = 200;
+	width = 0;
+	height = 20;
+	color = ofColor::red;
+}
+
 void ProgressBar::draw() {
 	//border
 	if (width == goal) {
@@ -237,4 +307,29 @@ void ProgressBar::draw() {
 	ofFill();
 	ofDrawRectangle(start, width, height);
 
+}
+
+
+Enemy::Enemy() {
+
+}
+Enemy::Enemy(ofPoint l) {
+	location = l;
+}
+
+void Enemy::draw() {
+	if (isAttacking) {
+		ofSetColor(ofColor::orangeRed);
+		ofDrawCircle(location, 100);
+		/*for (int i = 0; i < ofRandom(6, 20); ++i) {
+			ofDrawCircle();
+		}*/
+	}
+}
+
+void Enemy::attack() {
+	isAttacking = true;
+	for (int i = 0; i < (int)ofRandom(6, 25); ++i) {
+		ammo.push_back(location);
+	}
 }
