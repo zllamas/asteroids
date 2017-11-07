@@ -36,12 +36,9 @@ void ofApp::setup() {
 	// set up enemies
 	Enemy t1(ofPoint(0, 0));
 	Enemy t2(ofPoint(ofGetWidth(), ofGetHeight()));
-	Enemy t3(ofPoint(0, ofGetHeight()));
-	Enemy t4(ofPoint(ofGetWidth(), 0));
+
 	enemies.push_back(t1);
 	enemies.push_back(t2);
-	enemies.push_back(t3);
-	enemies.push_back(t4);
 }
 
 //--------------------------------------------------------------
@@ -129,7 +126,7 @@ void ofApp::update() {
 			lastSecond = floor(ofGetElapsedTimeMillis());
 
 			//update bar
-			progress.width = 200 * (currentProgress/500);
+			progress.width = 200 * (currentProgress/250);
 			//cout << progress.width << endl;
 
 		}
@@ -138,14 +135,10 @@ void ofApp::update() {
 
 	// =========================================================
 	
-	if (progress.width > 200*.75) { //3/4
-		enemies[2].attack();
-		enemies[3].attack();
-	}
-	else if (progress.width > 200 *.50) { //2/4
+	if (progress.width > 200 *.75) { //2/4
 		enemies[1].attack();
 	}
-	else if (progress.width > 200 * .25) { //1/4
+	else if (progress.width > 200 * .50) { //1/4
 		enemies[0].attack();
 	}
 	
@@ -315,15 +308,28 @@ Enemy::Enemy() {
 }
 Enemy::Enemy(ofPoint l) {
 	location = l;
+	if (l.x > 0) {
+		direction = 1;
+	}
+	else {
+		direction = -1;
+	}
 }
 
 void Enemy::draw() {
 	if (isAttacking) {
+
 		ofSetColor(ofColor::orangeRed);
+		if (location.y > ofGetHeight()) {
+			direction = -1;
+		}
+		if (location.y < 0) {
+			direction = 1;
+		}
+
+		location.y = location.y + (ofRandom(3,9) * direction);
+
 		ofDrawCircle(location, 100);
-		/*for (int i = 0; i < ofRandom(6, 20); ++i) {
-			ofDrawCircle();
-		}*/
 	}
 }
 

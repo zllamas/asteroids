@@ -35,6 +35,8 @@ struct Enemy {
 	void attack();
 	vector<ofPoint> ammo;
 
+	int direction;
+
 	ofPoint location;
 	float rotate;
 	bool isAttacking;
@@ -96,10 +98,11 @@ public:
 	bool attack;
 	bool isJawOpen;
 	
+	int slowshoot;
+	int fastshoot;
 
 	float currentProgress;
 	int lastSecond;
-
 	ProgressBar progress;
 };
 
